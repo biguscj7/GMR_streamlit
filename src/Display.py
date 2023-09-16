@@ -1,6 +1,8 @@
 import pandas as pd
 import streamlit as st
 import charset_normalizer
+from parsers import normalize_columns, find_best_match, score_artist, sort_df
+from io import BytesIO
 
 
 # TODO: Config settings
@@ -9,9 +11,9 @@ import charset_normalizer
 # TODO: Functions
 def file_to_df(uploaded_file, header: int | None = None, encoding: str = "utf-8") -> pd.DataFrame:
     if uploaded_file.name.endswith("csv"):
-        return pd.read_csv(uploaded_file, encoding=encoding, header=header)
+        return pd.read_csv(uploaded_file, encoding=encoding, header=header, dtype="object")
     elif "xls" in uploaded_file.name:  # did not do endswith due to possibility of getting both xls and xlsx files
-        return pd.read_excel(uploaded_file, header=header)
+        return pd.read_excel(uploaded_file, header=header, dtype="object")
 
 
 # TODO: Start page
@@ -40,6 +42,7 @@ with playlist_tab:
             playlist_df = file_to_df(playlist, header=0, encoding=encoding)
         else:
             playlist_df = file_to_df(playlist, header=None, encoding=encoding)
+            playlist_df.columns = [f"col_{i}" for i in playlist_df.columns]
 
         st.dataframe(playlist_df.head(), hide_index=True, use_container_width=True)
 
@@ -73,4 +76,33 @@ with gmr_tab:
         gmr_song_title = col3.selectbox("Song title column", gmr_df.columns, key="gmr_song_title")
         gmr_artist = col4.selectbox("Artist column", gmr_df.columns, key="gmr_artist")
 
-# TODO: Compare files
+with results_tab:
+    # TODO: Compare files
+    parse_files = st.button("Analyze files")
+    # TODO: Add 'normalized' song / artist to df
+    if parse_files:
+        prepped_playlist = normalize_columns(playlist_df, playlist_song_title, playlist_artist)
+        prepped_gmr = normalize_columns(gmr_df, gmr_song_title, gmr_artist)
+
+        find_best_match(prepped_playlist, prepped_gmr)
+
+        # st.write(f"Playlist dimenstions {prepped_playlist.shape}")
+        # st.dataframe(prepped_playlist, use_container_width=True, hide_index=True)
+        # st.write(f"GMR dimenstions {prepped_gmr.shape}")
+        # st.dataframe(prepped_gmr, use_container_width=True, hide_index=True)
+
+        merge_df = pd.merge(prepped_playlist, prepped_gmr, left_on="fuzzy_match", right_on="search_song", how="inner").fillna("")
+
+        score_artist(merge_df)
+
+        sort_df(merge_df)
+
+        st.write(merge_df.shape)
+        st.dataframe(merge_df)
+
+        output = BytesIO()
+
+        merge_df.to_excel(output)
+
+        st.download_button("Download", output, file_name="download.xlsx", mime="application/vnd.ms-excel")
+
