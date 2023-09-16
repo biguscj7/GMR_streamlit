@@ -1,4 +1,4 @@
 [server]
 headless = true
-port = 8901
+port = 8601
 baseUrlPath = "gmr_search"
