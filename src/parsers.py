@@ -1,11 +1,13 @@
 import pandas as pd
-from thefuzz import fuzz, process
+from rapidfuzz import fuzz, process
 
 
 def normalize_columns(in_df: pd.DataFrame, song_column: str, artist_column: str) -> None:
     working_df = in_df.copy()
     working_df["search_song"] = in_df[song_column].str.strip().str.lower()
     working_df["search_artist"] = in_df[artist_column].str.strip().str.lower()
+    if "col_" in working_df.columns[0]:
+        working_df.rename(columns={song_column: "Song Title", artist_column: "Song Artist"}, inplace=True)
     return working_df
 
 

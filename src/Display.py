@@ -91,18 +91,27 @@ with results_tab:
         # st.write(f"GMR dimenstions {prepped_gmr.shape}")
         # st.dataframe(prepped_gmr, use_container_width=True, hide_index=True)
 
-        merge_df = pd.merge(prepped_playlist, prepped_gmr, left_on="fuzzy_match", right_on="search_song", how="inner").fillna("")
+        merge_df = pd.merge(prepped_playlist, prepped_gmr, left_on="fuzzy_match", right_on="search_song",
+                            how="inner").fillna("")
 
         score_artist(merge_df)
 
         sort_df(merge_df)
 
-        st.write(merge_df.shape)
-        st.dataframe(merge_df)
+        print(merge_df.columns)
+
+        final_df = merge_df[['col_0', 'Song Title', 'fuzzy_match', 'fuzzy_score', 'Our Title',
+                             'Song Artist', 'fuzz_artist_match', 'artist_direct_match', 'Frequently Performed By',
+                             'Our Work ID', 'ISWC', 'Our Writers', 'Our Publishers', 'Our Share', 'ISRC']]
+
+        for col_name in ('Song Title', 'fuzzy_match', 'Our Title', 'Song Artist', 'Frequently Performed By'):
+            final_df[col_name] = final_df[col_name].str.title()
+
+        st.write(final_df.shape)
+        st.dataframe(final_df)
 
         output = BytesIO()
 
-        merge_df.to_excel(output)
+        final_df.to_excel(output)
 
         st.download_button("Download", output, file_name="download.xlsx", mime="application/vnd.ms-excel")
-
