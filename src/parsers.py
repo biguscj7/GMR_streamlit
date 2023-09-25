@@ -1,13 +1,16 @@
 import pandas as pd
 from rapidfuzz import fuzz, process
+from rich import print
 
 
-def normalize_columns(in_df: pd.DataFrame, song_column: str, artist_column: str) -> None:
+def normalize_columns(in_df: pd.DataFrame, song_column: str, artist_column: str, prefix: str) -> pd.DataFrame:
     working_df = in_df.copy()
+    working_df.rename(columns={song_column: f"{prefix}_song", artist_column: f"{prefix}_artist"},
+                      inplace=True)
     working_df["search_song"] = in_df[song_column].str.strip().str.lower()
     working_df["search_artist"] = in_df[artist_column].str.strip().str.lower()
-    if "col_" in working_df.columns[0]:
-        working_df.rename(columns={song_column: "Song Title", artist_column: "Song Artist"}, inplace=True)
+    #if "col_" in working_df.columns[0]:
+    #    working_df.rename(columns={song_column: "Song Title", artist_column: "Song Artist"}, inplace=True)
     return working_df
 
 
@@ -23,7 +26,7 @@ def find_best_match(playlist_df, gmr_df):
 
 
 def _split_song_score(row):
-    return row[0], row[1]
+    return ('', '') if row is None else (row[0], row[1])
 
 
 def score_artist(df):

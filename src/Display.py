@@ -44,10 +44,13 @@ with playlist_tab:
             playlist_df = file_to_df(playlist, header=None, encoding=encoding)
             playlist_df.columns = [f"col_{i}" for i in playlist_df.columns]
 
-        st.dataframe(playlist_df.head(), hide_index=True, use_container_width=True)
-
         playlist_song_title = col1.selectbox("Song title column", playlist_df.columns, key="playlist_song_title")
         playlist_artist = col2.selectbox("Artist column", playlist_df.columns, key="playlist_artist")
+
+        if playlist_song_title == playlist_artist:
+            st.write(":red[Please select different columns for artist and song list]")
+
+        st.dataframe(playlist_df.head(), hide_index=True, use_container_width=True)
 
 with gmr_tab:
     # TODO: Implement file upload of GRM file
@@ -70,19 +73,22 @@ with gmr_tab:
         else:
             gmr_df = file_to_df(gmr_file, encoding=encoding, header=None)
 
-        st.dataframe(gmr_df.head(), hide_index=True)
-
         # TODO: Require user to set key columns (artist, song title, etc)
         gmr_song_title = col3.selectbox("Song title column", gmr_df.columns, key="gmr_song_title")
         gmr_artist = col4.selectbox("Artist column", gmr_df.columns, key="gmr_artist")
+
+        if gmr_song_title == gmr_artist:
+            st.write(":red[Please select different columns for artist and song list]")
+
+        st.dataframe(gmr_df.head(), hide_index=True)
 
 with results_tab:
     # TODO: Compare files
     parse_files = st.button("Analyze files")
     # TODO: Add 'normalized' song / artist to df
     if parse_files:
-        prepped_playlist = normalize_columns(playlist_df, playlist_song_title, playlist_artist)
-        prepped_gmr = normalize_columns(gmr_df, gmr_song_title, gmr_artist)
+        prepped_playlist = normalize_columns(playlist_df, playlist_song_title, playlist_artist, "playlist")
+        prepped_gmr = normalize_columns(gmr_df, gmr_song_title, gmr_artist, "gmr")
 
         find_best_match(prepped_playlist, prepped_gmr)
 
@@ -98,20 +104,23 @@ with results_tab:
 
         sort_df(merge_df)
 
-        print(merge_df.columns)
+        final_df = merge_df[['playlist_song', 'gmr_song', 'fuzzy_score',
+                             'playlist_artist', 'artist_direct_match', 'fuzz_artist_match', 'gmr_artist',
+                             'Our Work ID', 'ISWC', 'Our Writers', 'Our Publishers', 'Our Share', 'ISRC',
+                             ]]
 
-        final_df = merge_df[['col_0', 'Song Title', 'fuzzy_match', 'fuzzy_score', 'Our Title',
-                             'Song Artist', 'fuzz_artist_match', 'artist_direct_match', 'Frequently Performed By',
-                             'Our Work ID', 'ISWC', 'Our Writers', 'Our Publishers', 'Our Share', 'ISRC']]
+        column_nice_name = {'playlist_song': "Playlist Song Title", 'gmr_song': "GMR Song Title",
+                            'fuzzy_score': "Fuzzy Title Score",
+                            'playlist_artist': "Playlist Artist", 'artist_direct_match': "Artist Exact Match",
+                            'fuzz_artist_match': "Fuzzy Artist Score", 'gmr_artist': "GMR Artist list"}
 
-        for col_name in ('Song Title', 'fuzzy_match', 'Our Title', 'Song Artist', 'Frequently Performed By'):
-            final_df[col_name] = final_df[col_name].str.title()
+        final_df.rename(columns=column_nice_name, inplace=True)
 
-        st.write(final_df.shape)
-        st.dataframe(final_df)
+        #st.write(final_df.shape)
+        st.dataframe(final_df, hide_index=True)
 
         output = BytesIO()
 
-        final_df.to_excel(output)
+        final_df.to_excel(output, index=False)
 
         st.download_button("Download", output, file_name="download.xlsx", mime="application/vnd.ms-excel")
