@@ -104,19 +104,22 @@ with results_tab:
 
         sort_df(merge_df)
 
+        st.write(merge_df.shape)
+        st.dataframe(merge_df)
+
         final_df = merge_df[['playlist_song', 'gmr_song', 'fuzzy_score',
-                             'playlist_artist', 'artist_direct_match', 'fuzz_artist_match', 'gmr_artist',
-                             'Our Work ID', 'ISWC', 'Our Writers', 'Our Publishers', 'Our Share', 'ISRC',
+                             'playlist_artist', 'artist_direct_match', 'fuzz_artist_set_ratio',
+                             'gmr_artist', 'Our Work ID', 'ISWC', 'Our Writers', 'Our Publishers', 'Our Share', 'ISRC',
                              ]]
 
-        column_nice_name = {'playlist_song': "Playlist Song Title", 'gmr_song': "GMR Song Title",
-                            'fuzzy_score': "Fuzzy Title Score",
-                            'playlist_artist': "Playlist Artist", 'artist_direct_match': "Artist Exact Match",
-                            'fuzz_artist_match': "Fuzzy Artist Score", 'gmr_artist': "GMR Artist list"}
+        column_nice_name = {'playlist_song': "Playlist Song Title", 'gmr_song': "GMR Best Song Match",
+                            'fuzzy_score': "Fuzzy Title Score", 'playlist_artist': "Playlist Artist",
+                            'artist_direct_match': "Artist Exact Match",
+                            'fuzz_artist_set_ratio': "Fuzzy Artist Set Ratio Score", 'gmr_artist': "GMR Artist list"}
 
         final_df.rename(columns=column_nice_name, inplace=True)
 
-        #st.write(final_df.shape)
+        # st.write(final_df.shape)
         st.dataframe(final_df, hide_index=True)
 
         output = BytesIO()
