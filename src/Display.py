@@ -104,9 +104,6 @@ with results_tab:
 
         sort_df(merge_df)
 
-        st.write(merge_df.shape)
-        st.dataframe(merge_df)
-
         final_df = merge_df[['playlist_song', 'gmr_song', 'fuzzy_score',
                              'playlist_artist', 'artist_direct_match', 'fuzz_artist_set_ratio',
                              'gmr_artist', 'Our Work ID', 'ISWC', 'Our Writers', 'Our Publishers', 'Our Share', 'ISRC',
