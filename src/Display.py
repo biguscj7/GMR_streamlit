@@ -1,17 +1,24 @@
+import logging
+
+from gc import callbacks
+
 import pandas as pd
 import streamlit as st
 import charset_normalizer
 from parsers import normalize_columns, find_best_match, score_artist, sort_df
 from io import BytesIO
 
-
 # TODO: Config settings
+logger = logging.getLogger(__name__)
+
+logging.basicConfig("app.log", format="%(asctime)s - %(message)s", level=logging.INFO)
 
 
 # TODO: Functions
 def file_to_df(uploaded_file, header: int | None = None, encoding: str = "utf-8") -> pd.DataFrame:
     if uploaded_file.name.endswith("csv"):
         return pd.read_csv(uploaded_file, encoding=encoding, header=header, dtype="object")
+        logger.info("CSV file uploaded")
     elif "xls" in uploaded_file.name:  # did not do endswith due to possibility of getting both xls and xlsx files
         return pd.read_excel(uploaded_file, header=header, dtype="object")
 
@@ -116,6 +123,10 @@ with results_tab:
 
         final_df.rename(columns=column_nice_name, inplace=True)
 
+
+    def callbacks():
+        logger.info("File downloaded")
+
         # st.write(final_df.shape)
         st.dataframe(final_df, hide_index=True)
 
@@ -123,4 +134,5 @@ with results_tab:
 
         final_df.to_excel(output, index=False)
 
-        st.download_button("Download", output, file_name="download.xlsx", mime="application/vnd.ms-excel")
+        st.download_button("Download", output, file_name="download.xlsx", mime="application/vnd.ms-excel",
+                           callbacks=callbacks)
