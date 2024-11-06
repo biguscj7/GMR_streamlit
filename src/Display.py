@@ -11,14 +11,14 @@ from io import BytesIO
 # TODO: Config settings
 logger = logging.getLogger(__name__)
 
-logging.basicConfig("app.log", format="%(asctime)s - %(message)s", level=logging.INFO)
+logging.basicConfig(filename="app.log", format="%(asctime)s - %(message)s", level=logging.INFO)
 
 
 # TODO: Functions
 def file_to_df(uploaded_file, header: int | None = None, encoding: str = "utf-8") -> pd.DataFrame:
     if uploaded_file.name.endswith("csv"):
-        return pd.read_csv(uploaded_file, encoding=encoding, header=header, dtype="object")
         logger.info("CSV file uploaded")
+        return pd.read_csv(uploaded_file, encoding=encoding, header=header, dtype="object")
     elif "xls" in uploaded_file.name:  # did not do endswith due to possibility of getting both xls and xlsx files
         return pd.read_excel(uploaded_file, header=header, dtype="object")
 
